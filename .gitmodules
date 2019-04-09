@@ -1,0 +1,6 @@
+[submodule "lexertl"]
+	path = lexertl
+	url = https://github.com/BenHanson/lexertl.git
+[submodule "parsertl"]
+	path = parsertl
+	url = https://github.com/BenHanson/parsertl.git
