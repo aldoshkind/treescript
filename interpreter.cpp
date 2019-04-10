@@ -92,15 +92,7 @@ bool interpreter::eval(std::string expression)
 		parsertl::lookup(parser_state_machine, iter_, results_, productions_);
 	}
 
-	if(stack.size() > 0)
-	{
-		auto val = stack.top();
-		auto dval = dynamic_cast<property_value<real_type> *>(val);
-		if(dval)
-		{
-			std::cout << "Result: " << dval->get_value() << '\n';
-		}
-	}
+	return true;
 }
 
 void interpreter::do_connect(stack_t &stack)

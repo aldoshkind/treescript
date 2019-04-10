@@ -1,8 +1,3 @@
-#include <iostream>
-#include <memory>
-#include <typeinfo>
-#include <functional>
-
 #include "interpreter.h"
 
 using namespace treescript;
@@ -26,7 +21,7 @@ int main()
 	
 	statements.push_back("lat <- 3 * (70 + 50.0) - lon");
 	
-	for(int i = 0 ; i < statements.size() ; i += 1)
+	for(std::vector<std::string>::size_type i = 0 ; i < statements.size() ; i += 1)
 	{
 		interp.eval(statements[i]);
 		printf("%f\n", lat->get_value());

@@ -51,7 +51,7 @@ public:
 	void subscribe()
 	{
 		auto children = get_children();
-		for(int i = 0 ; i < children.size() ; i += 1)
+		for(tree_node::children_t::size_type i = 0 ; i < children.size() ; i += 1)
 		{
 			auto op = dynamic_cast<term_op *>(children[i]);
 			auto prop = dynamic_cast<property_base *>(children[i]);
@@ -75,7 +75,7 @@ private:
 		}
 	}
 	
-	void updated(property_base *prop)
+	void updated(property_base */*prop*/)
 	{
 		update();
 	}
