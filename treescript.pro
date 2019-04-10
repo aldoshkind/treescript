@@ -15,18 +15,25 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += main.cpp \
-    ../../../downloads/vcs/tree/filepath_utils.cpp \
-    ../../../downloads/vcs/tree/property_listener.cpp \
-    ../../../downloads/vcs/tree/tree_node.cpp \
-    ../../../downloads/vcs/tree/tree_node_inherited.cpp
+    $$TREE_PATH/tree/filepath_utils.cpp \
+    $$TREE_PATH/tree/property_listener.cpp \
+    $$TREE_PATH/tree/tree_node.cpp \
+    $$TREE_PATH/tree/tree_node_inherited.cpp \
+    interpreter.cpp
 
 INCLUDEPATH += $$PWD/parsertl
 INCLUDEPATH += $$PWD/lexertl
 INCLUDEPATH += $$TREE_PATH
 
 HEADERS += \
-    ../../../downloads/vcs/tree/filepath_utils.h \
-    ../../../downloads/vcs/tree/property.h \
-    ../../../downloads/vcs/tree/property_listener.h \
-    ../../../downloads/vcs/tree/tree_node.h \
-    ../../../downloads/vcs/tree/tree_node_inherited.h
+    $$TREE_PATH/tree/filepath_utils.h \
+    $$TREE_PATH/tree/property.h \
+    $$TREE_PATH/tree/property_listener.h \
+    $$TREE_PATH/tree/tree_node.h \
+    $$TREE_PATH/tree/tree_node_inherited.h \
+    types.h \
+    term.h \
+    value.h \
+    interpreter.h \
+    typesystem.h \
+    typeinfo.h
