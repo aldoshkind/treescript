@@ -19,7 +19,8 @@ SOURCES += main.cpp \
     $$TREE_PATH/tree/property_listener.cpp \
     $$TREE_PATH/tree/tree_node.cpp \
     $$TREE_PATH/tree/tree_node_inherited.cpp \
-    interpreter.cpp
+    interpreter.cpp \
+    $$TREE_PATH/treecmd/cmd.cpp
 
 INCLUDEPATH += $$PWD/parsertl
 INCLUDEPATH += $$PWD/lexertl
@@ -36,4 +37,10 @@ HEADERS += \
     value.h \
     interpreter.h \
     typesystem.h \
-    typeinfo.h
+    typeinfo.h \
+    $$TREE_PATH/treecmd/cmd.h \
+    $$TREE_PATH/treecmd/type.h \
+    $$TREE_PATH/treecmd/typeidable.h
+
+
+LIBS += -lreadline

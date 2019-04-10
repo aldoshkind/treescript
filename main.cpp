@@ -1,6 +1,22 @@
 #include "interpreter.h"
 
+#include <treecmd/cmd.h>
+
 using namespace treescript;
+
+class interp : public treecmd::interpreter, public treescript::interpreter
+{
+public:
+	interp(tree_node *root, tree_node *interpreter_root) : treescript::interpreter(root, interpreter_root)
+	{
+		//
+	}
+
+	void evaluate(std::string s)
+	{
+		eval(s);
+	}
+};
 
 int main()
 {
@@ -11,11 +27,11 @@ int main()
 	root.attach("lon", lon);
 	tree_node *interp_root = root.get("interpreter", true);
 	
+	treecmd::cmd cmd(&root);
 	
+	interp interp(&root, interp_root);
 	
-	interpreter interp(&root, interp_root);
-	
-	
+	cmd.set_interpreter(&interp);
 	
 	std::vector<std::string> statements;
 	
@@ -28,6 +44,13 @@ int main()
 		lon->set_value(10);
 		interp.eval(statements[i]);
 		printf("%f\n", lat->get_value());
+	}
+
+	cmd.run_in_thread();
+
+	for( ; ; )
+	{
+		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
 	return 0;
