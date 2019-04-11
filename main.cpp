@@ -12,9 +12,9 @@ public:
 		//
 	}
 
-	void evaluate(std::string s)
+	tree_node *evaluate(std::string s)
 	{
-		eval(s);
+		return eval(s);
 	}
 };
 
@@ -32,20 +32,6 @@ int main()
 	interp interp(&root, interp_root);
 	
 	cmd.set_interpreter(&interp);
-	
-	std::vector<std::string> statements;
-	
-	statements.push_back("lat <- 3 * (70 + 50.0) - lon");
-	
-	for(std::vector<std::string>::size_type i = 0 ; i < statements.size() ; i += 1)
-	{
-		interp.eval(statements[i]);
-		printf("%f\n", lat->get_value());
-		lon->set_value(10);
-		interp.eval(statements[i]);
-		printf("%f\n", lat->get_value());
-	}
-
 	cmd.run_in_thread();
 
 	for( ; ; )

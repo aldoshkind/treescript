@@ -2,7 +2,7 @@
 
 using namespace treescript;
 
-bool interpreter::eval(std::string expression)
+tree_node *interpreter::eval(std::string expression)
 {
 	lexertl::citerator iter_(expression.c_str(), expression.c_str() + expression.size(), lexer_state_machine);		
 	
@@ -11,7 +11,6 @@ bool interpreter::eval(std::string expression)
 	token::token_vector productions_;
 
 	std::stack<tree_node *> stack;
-
 	
 	while (results_.entry.action != parsertl::error && results_.entry.action != parsertl::accept)
 	{
@@ -34,7 +33,7 @@ bool interpreter::eval(std::string expression)
 					if(n == nullptr)
 					{
 						printf("no such node '%s'\n", prop_name.c_str());
-						return -1;
+						return nullptr;
 					}
 					
 					stack.push(n);
@@ -91,14 +90,20 @@ bool interpreter::eval(std::string expression)
 
 		parsertl::lookup(parser_state_machine, iter_, results_, productions_);
 	}
+	
+	if(stack.size() == 1)
+	{
+		return stack.top();
+	}
+	
+#warning
+	// cleanup stack!!!
 
-	return true;
+	return nullptr;
 }
 
 void interpreter::do_connect(stack_t &stack)
 {
-	printf("convert_to_tracker\n");
-	
 	if(stack.size() < 2)
 	{
 		printf("error: stack size is less than two\n");
@@ -128,7 +133,19 @@ void interpreter::do_connect(stack_t &stack)
 		return;
 	}
 	
-	tree_node *tr = new tracker(right_prop, left_prop);
+	typesystem *ts = nullptr;
+	if(left_prop->get_type() != right_prop->get_type())
+	{
+		if(!this->ts.can_convert(right_prop->get_type(), left_prop->get_type()) || !this->ts.can_set(left_prop->get_type()))
+		{
+			printf("error: cannot connect node of type '%s' to '%s'\n", right_prop->get_type().c_str(), left_prop->get_type().c_str());
+			return;
+		}
+		ts = &this->ts;
+	}
+	
+	tracker *track = new tracker(right_prop, left_prop, ts);
+	tree_node *tr = track;
 	
 	interp_root->attach("tracker@" + std::to_string((long long)tr), tr);
 	

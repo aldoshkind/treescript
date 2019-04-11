@@ -5,6 +5,8 @@
 #include <tree/tree_node.h>
 #include <tree/property.h>
 
+#include "typesystem.h"
+
 namespace treescript
 {
 
@@ -28,7 +30,7 @@ public:
 		name = op;
 	}
 	
-	//virtual void evaluate() = 0;
+	virtual void evaluate() = 0;
 	virtual void subscribe() = 0;
 	
 protected:
@@ -77,6 +79,11 @@ private:
 	
 	void updated(property_base */*prop*/)
 	{
+		evaluate();
+	}
+	
+	void evaluate()
+	{
 		update();
 	}
 };
@@ -84,14 +91,15 @@ private:
 class tracker : public tree_node, public property_listener
 {
 public:
-	tracker(property_base *tr, property_base *tar) : tracked(tr), target(tar)
+	tracker(property_base *tr, property_base *tar, typesystem *ts) : tracked(tr), target(tar)
 	{
+		this->ts = ts;
 		auto op = dynamic_cast<term_op *>(tr);
-		tracked->add_listener(this);
 		if(op != nullptr)
 		{
 			op->subscribe();
-		}		
+		}
+		tracked->add_listener(this);
 	}
 	
 	virtual ~tracker()
@@ -101,12 +109,20 @@ public:
 	
 	void					updated						(property_base *prop)
 	{
-		target->set_value(prop);
+		if(ts != nullptr)
+		{
+			ts->convert(prop, target);
+		}
+		else
+		{
+			target->set_value(prop);
+		}
 	}
 	
 private:
 	property_base *tracked = nullptr;
 	property_base *target = nullptr;
+	typesystem *ts = nullptr;
 };
 
 }

@@ -77,18 +77,18 @@ public:
 	
 	void init_types()
 	{
-		operations[typeid(int_type).name()]["mul"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){printf("*");return a * b;}, res);};
-		operations[typeid(int_type).name()]["div"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){printf("/");return a / b;}, res);};
-		operations[typeid(int_type).name()]["sub"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){printf("-");return a - b;}, res);};
-		operations[typeid(int_type).name()]["sum"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){printf("+");return a + b;}, res);};
+		operations[typeid(int_type).name()]["mul"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){return a * b;}, res);};
+		operations[typeid(int_type).name()]["div"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){return a / b;}, res);};
+		operations[typeid(int_type).name()]["sub"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){return a - b;}, res);};
+		operations[typeid(int_type).name()]["sum"] = [this](property_base *a, property_base *b, property_base *res){return op<int_type>(a, b, [](int_type a, int_type b){return a + b;}, res);};
 
-		operations[typeid(real_type).name()]["mul"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){printf("*");return a * b;}, res);};
-		operations[typeid(real_type).name()]["div"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){printf("/");return a / b;}, res);};
-		operations[typeid(real_type).name()]["sub"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){printf("-");return a - b;}, res);};
-		operations[typeid(real_type).name()]["sum"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){printf("+");return a + b;}, res);};
+		operations[typeid(real_type).name()]["mul"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){return a * b;}, res);};
+		operations[typeid(real_type).name()]["div"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){return a / b;}, res);};
+		operations[typeid(real_type).name()]["sub"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){return a - b;}, res);};
+		operations[typeid(real_type).name()]["sum"] = [this](property_base *a, property_base *b, property_base *res){return op<real_type>(a, b, [](real_type a, real_type b){return a + b;}, res);};
 	}
 	
-	bool eval(std::string expression);
+	tree_node *eval(std::string expression);
 	
 private:
 	tree_node *root = nullptr;
@@ -204,6 +204,7 @@ private:
 		});
 		
 		n->set_op_name(op);
+		n->evaluate();
 		stack.push(tn);
 		
 		return true;
