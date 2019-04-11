@@ -34,6 +34,7 @@ public:
 		{
 			parser_rules.token("CONST");
 			parser_rules.token("PROP");
+			parser_rules.left("'='");
 			parser_rules.left("'<-'");
 			parser_rules.left("'+' '-'");
 			parser_rules.left("'*' '/'");
@@ -46,6 +47,7 @@ public:
 			index_mul = parser_rules.push("exp", "exp '*' exp");
 			index_div = parser_rules.push("exp", "exp '/' exp");
 			index_connect = parser_rules.push("exp", "exp '<-' exp");
+			index_assign = parser_rules.push("exp", "exp '=' exp");
 	
 			parser_rules.push("exp", "'(' exp ')'");
 	
@@ -59,10 +61,10 @@ public:
 			lexer_rules.push("-", parser_rules.token_id("'-'"));
 			lexer_rules.push("<-", parser_rules.token_id("'<-'"));
 			lexer_rules.push("[*]", parser_rules.token_id("'*'"));
+			lexer_rules.push("=", parser_rules.token_id("'='"));
 			lexer_rules.push("[/]", parser_rules.token_id("'/'"));
-			lexer_rules.push("(\\d+([.]\\d+)?)|(true|false)", parser_rules.token_id("CONST"));
+			lexer_rules.push("([+-]?\\d+([.]\\d+)?)|(true|false)", parser_rules.token_id("CONST"));
 			lexer_rules.push("(([/]*(\\w+|\\.{1,2})[/]*)+)", parser_rules.token_id("PROP"));
-			//lexer_rules.push("[a-zA-Z]+", parser_rules.token_id("PROP"));
 			lexer_rules.push("[(]", parser_rules.token_id("'('"));
 			lexer_rules.push("[)]", parser_rules.token_id("')'"));
 			lexer_rules.push("\\s+", lexer_rules.skip());
@@ -102,7 +104,6 @@ private:
 	lexertl::state_machine lexer_state_machine;
 	
 	
-	
 	typedef std::function<bool (property_base *, property_base *, property_base *)> operation_func_t;
 	typedef std::map<std::string, operation_func_t> opset_t;
 	typedef std::map<std::string, opset_t> operations_t;
@@ -116,6 +117,7 @@ private:
 	std::size_t index_mul;
 	std::size_t index_div;
 	std::size_t index_connect;
+	std::size_t index_assign;
 
 	std::size_t umin_index_;
 	std::size_t index_const;
@@ -166,8 +168,8 @@ private:
 		{
 			return false;
 		}
-		tn->attach("left", left);
-		tn->attach("right", right);
+		tn->attach("left$" + left->get_name(), left);
+		tn->attach("right$" + right->get_name(), right);
 		
 		
 		if(operations.find(type) == operations.end())
@@ -203,6 +205,8 @@ private:
 			return operations[type][op](left, right, p);
 		});
 		
+		// Set name. Name will be replaced if node is attached under other node.
+		tn->set_name(op);
 		n->set_op_name(op);
 		n->evaluate();
 		stack.push(tn);
@@ -213,6 +217,9 @@ private:
 	
 	
 	void do_connect(stack_t &stack);
+	void do_assign(stack_t &stack);
+	
+	void cleanup_subtree(tree_node *n);
 	
 	
 	template <class type>

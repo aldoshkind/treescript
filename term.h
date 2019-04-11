@@ -45,6 +45,11 @@ template <class value_t>
 class term : public tree_node, public property_value<value_t>, public term_op, public property_listener
 {
 public:
+	term(value_t v = value_t()) : property_value<value_t>(v)
+	{
+		//
+	}
+	
 	value_t					get_value						() const
 	{
 		return property_value<value_t>::get_value();
