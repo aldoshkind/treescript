@@ -1,13 +1,14 @@
 #include "interpreter.h"
 
 #include <treecmd/cmd.h>
+#include "types.h"
 
 using namespace treescript;
 
 class interp : public treecmd::interpreter, public treescript::interpreter
 {
 public:
-	interp(tree_node *root, tree_node *interpreter_root) : treescript::interpreter(root, interpreter_root)
+	interp(tree_node *root) : treescript::interpreter(root)
 	{
 		//
 	}
@@ -30,13 +31,12 @@ int main()
 	tree_node_inherited<property_value<real_type>> *lon = new tree_node_inherited<property_value<real_type>>;
 	root.attach("lat", lat);
 	root.attach("lon", lon);
-	tree_node *interp_root = root.get("interpreter", true);
+	interp in(&root);
+	root.attach("interpreter", &in, false);
 	
 	treecmd::cmd cmd(&root);
 	
-	interp interp(&root, interp_root);
-	
-	cmd.set_interpreter(&interp);
+	cmd.set_interpreter(&in);
 	cmd.run_in_thread();
 
 	for( ; ; )
