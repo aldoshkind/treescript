@@ -16,6 +16,11 @@ public:
 	{
 		return eval(s);
 	}
+
+	void set_root(tree_node *root)
+	{
+		treescript::interpreter::set_root(root);
+	}
 };
 
 int main()

@@ -91,6 +91,11 @@ public:
 	}
 	
 	tree_node *eval(std::string expression);
+
+	void set_root(tree_node *r)
+	{
+		root = r;
+	}
 	
 private:
 	tree_node *root = nullptr;
