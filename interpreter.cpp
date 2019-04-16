@@ -21,6 +21,11 @@ public:
 	
 	tree_node *eval(std::string expression);
 	
+	void set_root(tree_node *r)
+	{
+		root = r;
+	}
+	
 private:
 	tree_node *root = nullptr;
 	tree_node *interp_root = nullptr;
@@ -118,6 +123,11 @@ bool interpreter::internal::op(property_base *left, property_base *right, std::f
 interpreter::interpreter(tree_node *root)
 {
 	in = new internal(root, this);
+}
+
+void interpreter::set_root(tree_node *r)
+{
+	in->set_root(r);
 }
 
 tree_node *interpreter::eval(std::string expression)

@@ -12,10 +12,7 @@ public:
 	
 	tree_node *eval(std::string expression);
 
-	void set_root(tree_node *r)
-	{
-		root = r;
-	}
+	void set_root(tree_node *r);
 	
 private:
 	class internal;
