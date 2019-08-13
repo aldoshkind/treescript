@@ -134,10 +134,29 @@ public:
 		promoters[typeid(bool_type).name()][typeid(int_type).name()] = [](property_base * op){return promote<bool_type, int_type>(op, [](bool_type val){return ((val == true) ? 1 : 0);});};
 		promoters[typeid(int_type).name()][typeid(real_type).name()] = [](property_base * op){return promote<int_type, real_type>(op, [](int_type val){return real_type(val);});};
 		promoters[typeid(bool_type).name()][typeid(real_type).name()] = [](property_base * op){return promote<bool_type, real_type>(op, [](bool_type val){return ((val == true) ? 1.0 : 0.0);});};
+		promoters[typeid(double).name()][typeid(float).name()] = [](property_base * op){return promote<double, float>(op, [](double val){return val;});};
+		
+		promoters[typeid(double).name()][typeid(int8_t).name()] = [](property_base * op){return promote<double, float>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(uint8_t).name()] = [](property_base * op){return promote<double, uint8_t>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(int16_t).name()] = [](property_base * op){return promote<double, int16_t>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(uint16_t).name()] = [](property_base * op){return promote<double, uint16_t>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(int32_t).name()] = [](property_base * op){return promote<double, int32_t>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(uint32_t).name()] = [](property_base * op){return promote<double, uint32_t>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(int64_t).name()] = [](property_base * op){return promote<double, int64_t>(op, [](double val){return val;});};
+		promoters[typeid(double).name()][typeid(uint64_t).name()] = [](property_base * op){return promote<double, uint64_t>(op, [](double val){return val;});};
 		
 		setter_map[typeid(bool_type).name()] = set_val<bool_type>;
 		setter_map[typeid(int_type).name()] = set_val<int_type>;
 		setter_map[typeid(real_type).name()] = set_val<real_type>;
+		setter_map[typeid(float).name()] = set_val<float>;
+		setter_map[typeid(int8_t).name()] = set_val<int8_t>;
+		setter_map[typeid(uint8_t).name()] = set_val<uint8_t>;
+		setter_map[typeid(int16_t).name()] = set_val<int16_t>;
+		setter_map[typeid(uint16_t).name()] = set_val<uint16_t>;
+		setter_map[typeid(int32_t).name()] = set_val<int32_t>;
+		setter_map[typeid(uint32_t).name()] = set_val<uint32_t>;
+		setter_map[typeid(int64_t).name()] = set_val<int64_t>;
+		setter_map[typeid(uint64_t).name()] = set_val<uint64_t>;
 	}
 	
 private:
