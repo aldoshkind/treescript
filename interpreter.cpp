@@ -55,6 +55,7 @@ private:
 	//std::size_t umin_index_;
 	std::size_t index_const;
 	std::size_t index_prop;
+	std::size_t index_string;
 
 	void init();
 	void init_types();
@@ -220,6 +221,11 @@ tree_node *interpreter::internal::eval(std::string expression)
 					{
 						bool_type val = (value_str == "true");
 						stack.push(new term<bool_type>(val));
+					}
+					else if (value_str[0] == '\'' && value_str[value_str.size() - 1] == '\'')
+					{
+						string_type val = string_type::fromStdString(value_str.substr(1, value_str.size() - 2));
+						stack.push(new term<string_type>(val));
 					}
 					else if(value_str.find('.') != std::string::npos)
 					{
@@ -501,7 +507,7 @@ void interpreter::internal::init()
 		lexer_rules.push("[*]", parser_rules.token_id("'*'"));
 		lexer_rules.push("=", parser_rules.token_id("'='"));
 		lexer_rules.push("[/]", parser_rules.token_id("'/'"));
-		lexer_rules.push("(\\d+([.]\\d+)?)|(true|false)", parser_rules.token_id("CONST"));
+		lexer_rules.push("(\\d+([.]\\d+)?)|(true|false)|'.*?'", parser_rules.token_id("CONST"));
 		lexer_rules.push("(([/]*(\\w+|\\.{1,2})[/]*)+)", parser_rules.token_id("PROP"));
 		lexer_rules.push("[(]", parser_rules.token_id("'('"));
 		lexer_rules.push("[)]", parser_rules.token_id("')'"));
