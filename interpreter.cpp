@@ -19,7 +19,7 @@ class interpreter::internal
 public:
 	internal(tree_node *root, tree_node *interpreter_root);
 	
-	tree_node *eval(std::string expression);
+	tree_node *eval(std::string expression, tree_node *local_root = nullptr);
 	
 	void set_root(tree_node *r)
 	{
@@ -41,8 +41,7 @@ private:
 	typedef std::map<std::string, operation_func_t> opset_t;
 	typedef std::map<std::string, opset_t> operations_t;
 	operations_t operations;
-	
-	
+
 	typesystem ts;
 	
 	std::size_t index_sum;
@@ -61,8 +60,8 @@ private:
 	void init_types();
 	
 	term_op *generate_op_node(std::string type);	
-	bool push_bin_op(stack_t &stack, std::string op);	
-	void do_connect(stack_t &stack);
+	bool push_bin_op(stack_t &stack, std::string op);
+	bool do_connect(stack_t &stack);
 	void do_assign(stack_t &stack);	
 	void cleanup_subtree(tree_node *n);
 	
@@ -131,13 +130,13 @@ void interpreter::set_root(tree_node *r)
 	in->set_root(r);
 }
 
-tree_node *interpreter::eval(std::string expression)
+tree_node *interpreter::eval(std::string expression, tree_node *local_root)
 {
 	if(in == nullptr)
 	{
 		return nullptr;
 	}
-	return in->eval(expression);
+	return in->eval(expression, local_root);
 }
 
 
@@ -150,7 +149,7 @@ interpreter::internal::internal(tree_node *root, tree_node *interpreter_root)
 	init_types();
 }
 
-tree_node *interpreter::internal::eval(std::string expression)
+tree_node *interpreter::internal::eval(std::string expression, tree_node *local_root)
 {
 	lexertl::citerator iter_(expression.c_str(), expression.c_str() + expression.size(), lexer_state_machine);		
 	
@@ -159,6 +158,11 @@ tree_node *interpreter::internal::eval(std::string expression)
 	token::token_vector productions_;
 
 	std::stack<tree_node *> stack;
+	
+	if(local_root == nullptr)
+	{
+		local_root = root;
+	}
 	
 	while (results_.entry.action != parsertl::error && results_.entry.action != parsertl::accept)
 	{
@@ -177,11 +181,11 @@ tree_node *interpreter::internal::eval(std::string expression)
 				if (rule_ == index_prop)
 				{
 					std::string prop_name = results_.dollar(parser_state_machine, 0, productions_).str();						
-					tree_node *n = root->get(prop_name, false);
+					tree_node *n = local_root->get(prop_name, false);
 					if(n == nullptr)
 					{
-						printf("no such node '%s'\n", prop_name.c_str());
-						return nullptr;
+						printf("%s: warning: no such node '%s', using absent_node\n", __func__, prop_name.c_str());
+						n = new wait_node(prop_name, local_root);
 					}
 					
 					stack.push(n);
@@ -276,12 +280,12 @@ tree_node *interpreter::internal::eval(std::string expression)
 	return nullptr;
 }
 
-void interpreter::internal::do_connect(stack_t &stack)
+bool interpreter::internal::do_connect(stack_t &stack)
 {
 	if(stack.size() < 2)
 	{
-		printf("error: stack size is less than two\n");
-		return;
+		printf("%s: error: stack size is less than two\n", __func__);
+		return false;
 	}
 	
 	auto right = stack.top();
@@ -292,35 +296,44 @@ void interpreter::internal::do_connect(stack_t &stack)
 	auto right_prop = dynamic_cast<property_base *>(right);
 	auto left_prop = dynamic_cast<property_base *>(left);
 	
-	if(right_prop == nullptr || left_prop == nullptr)
+	if(left_prop == nullptr)
 	{
-		return;
+		printf("%s: error: left operand must exist and be a property\n", __func__);
+		cleanup_subtree(left);
+		cleanup_subtree(right);
+		return false;
+	}
+
+	wait_node *right_as_wait_node = dynamic_cast<wait_node *>(right);
+	
+	if((right_prop == nullptr && right_as_wait_node == nullptr))
+	{
+		printf("%s: error: right operand does not exist\n", __func__);
+		cleanup_subtree(left);
+		cleanup_subtree(right);
+		return false;
 	}
 	
-	typesystem *ts = nullptr;
-	if(left_prop->get_type() != right_prop->get_type())
-	{
-		if(!this->ts.can_convert(right_prop->get_type(), left_prop->get_type()) || !this->ts.can_set(left_prop->get_type()))
-		{
-			printf("error: cannot connect node of type '%s' to '%s'\n", right_prop->get_type().c_str(), left_prop->get_type().c_str());
-			return;
-		}
-		ts = &this->ts;
-	}
-	
-	tracker *track = new tracker(right_prop, left_prop, ts);
+	tracker *track = new tracker(right, left_prop, &ts);
 	tree_node *tr = track;
+	tr->attach("tracked", right);
 	
+	if(right_as_wait_node != nullptr)
+	{
+		right_as_wait_node->do_wait();
+	}
+	
+	tr->attach("target", left);
 	interp_root->attach("tracker@" + std::to_string((long long)tr), tr);
-	
 	stack.push(left);
+	return true;
 }
 
 void interpreter::internal::do_assign(stack_t &stack)
 {
 	if(stack.size() < 2)
 	{
-		printf("error: stack size is less than two\n");
+		printf("%s: error: stack size is less than two\n", __func__);
 		return;
 	}
 	
@@ -334,15 +347,15 @@ void interpreter::internal::do_assign(stack_t &stack)
 	
 	if(right_prop == nullptr || left_prop == nullptr)
 	{
-		printf("error: one or both of operands are not properties\n");
+		printf("%s: error: one or both of operands are not properties\n", __func__);
 		cleanup_subtree(left);
 		cleanup_subtree(right);
 		return;
 	}
 	
-	if(dynamic_cast<term_op *>(left_prop) != nullptr)
+	if(dynamic_cast<term_op *>(left_prop) != nullptr || dynamic_cast<wait_node *>(left_prop) != nullptr)
 	{
-		printf("error: left operand of assignment is not assignable\n");
+		printf("%s: error: left operand of assignment is not assignable\n", __func__);
 		cleanup_subtree(left);
 		cleanup_subtree(right);
 		return;
@@ -352,7 +365,7 @@ void interpreter::internal::do_assign(stack_t &stack)
 	{
 		if(!this->ts.can_convert(right_prop->get_type(), left_prop->get_type()) || !this->ts.can_set(left_prop->get_type()))
 		{
-			printf("error: cannot connect node of type '%s' to '%s'\n", right_prop->get_type().c_str(), left_prop->get_type().c_str());
+			printf("%s: error: cannot connect node of type '%s' to '%s'\n", __func__, right_prop->get_type().c_str(), left_prop->get_type().c_str());
 			cleanup_subtree(left);
 			cleanup_subtree(right);
 			return;
@@ -380,6 +393,10 @@ void interpreter::internal::cleanup_subtree(tree_node *n)
 	{
 		delete n;
 	}
+	else if(dynamic_cast<wait_node *>(n) != nullptr)
+	{
+		delete n;
+	}
 }
 
 bool interpreter::internal::push_bin_op(stack_t &stack, std::string op)
@@ -396,22 +413,61 @@ bool interpreter::internal::push_bin_op(stack_t &stack, std::string op)
 	
 	auto right_prop = dynamic_cast<property_base *>(right);
 	auto left_prop = dynamic_cast<property_base *>(left);
-
-	std::string type = ts.get_common_type(right_prop->property_base::get_type(), left_prop->property_base::get_type());
-	if(type == "")
+	
+	if(right_prop == nullptr && left_prop == nullptr)
 	{
+		printf("%s: error: at least one of operands must exist and be a property\n", __func__);
 		return false;
 	}
+
+	wait_node *left_as_wait_node = dynamic_cast<wait_node *>(left);
+	wait_node *right_as_wait_node = dynamic_cast<wait_node *>(right);
+	
+	if((right_prop == nullptr && right_as_wait_node == nullptr) || (left_prop == nullptr && left_as_wait_node == nullptr))
+	{
+		printf("%s: error: one of operands does not exist\n", __func__);
+		return false;
+	}
+	
+	std::string type;
+	
+	if(right_as_wait_node != nullptr)
+	{
+		type = left_prop->get_type();
+	}
+	else if(left_as_wait_node != nullptr)
+	{
+		type = right_prop->get_type();
+	}
+	else
+	{
+		type = ts.get_common_type(right_prop->property_base::get_type(), left_prop->property_base::get_type());
+		if(type == "")
+		{
+			printf("%s: unable to deduct type of result of operation\n", __func__);
+			return false;
+		}
+	}
+
 	term_op *n = generate_op_node(type);
 	tree_node *tn = dynamic_cast<tree_node *>(n);
 	if(n == nullptr || tn == nullptr)
 	{
 		return false;
 	}
+
 	tn->attach("left$" + left->get_name(), left);
 	tn->attach("right$" + right->get_name(), right);
 	
-	
+	if(right_as_wait_node != nullptr)
+	{
+		right_as_wait_node->do_wait();
+	}
+	else if(left_as_wait_node != nullptr)
+	{
+		left_as_wait_node->do_wait();
+	}
+
 	if(operations.find(type) == operations.end())
 	{
 		return false;
@@ -434,11 +490,28 @@ bool interpreter::internal::push_bin_op(stack_t &stack, std::string op)
 			return false;
 		}
 		
-		auto left = dynamic_cast<property_base *>(tn->get_children()[0]);
-		auto right = dynamic_cast<property_base *>(tn->get_children()[1]);
+		tree_node *l = tn->get_children()[0];
+		tree_node *r = tn->get_children()[1];
+		
+		wait_node *left_as_absent = dynamic_cast<wait_node *>(l);
+		wait_node *right_as_absent = dynamic_cast<wait_node *>(r);
+		
+		if(left_as_absent != nullptr)
+		{
+			l = left_as_absent->get_node();
+		}
+		
+		if(right_as_absent != nullptr)
+		{
+			r = right_as_absent->get_node();
+		}
+		
+		property_base *left = dynamic_cast<property_base *>(l);
+		property_base *right = dynamic_cast<property_base *>(r);
 		
 		if(left == nullptr || right == nullptr)
 		{
+			printf("%s: unble to apply operation: one or both operands are null\n", __func__);
 			return false;
 		}
 		
@@ -508,7 +581,7 @@ void interpreter::internal::init()
 		lexer_rules.push("=", parser_rules.token_id("'='"));
 		lexer_rules.push("[/]", parser_rules.token_id("'/'"));
 		lexer_rules.push("(\\d+([.]\\d+)?)|(true|false)|'.*?'", parser_rules.token_id("CONST"));
-		lexer_rules.push("(([/]*(\\w+|\\.{1,2})[/]*)+)", parser_rules.token_id("PROP"));
+		lexer_rules.push("(([/]*([A-Za-z0-9_@#$%^&!]+|\\.{1,2})[/]*)+)", parser_rules.token_id("PROP"));
 		lexer_rules.push("[(]", parser_rules.token_id("'('"));
 		lexer_rules.push("[)]", parser_rules.token_id("')'"));
 		lexer_rules.push("\\s+", lexer_rules.skip());

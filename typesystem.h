@@ -83,7 +83,14 @@ public:
 	
 	void convert(property_base *from, property_base *to)
 	{
-		set_value(to, promote_to(from, to->get_type()));
+		if(from->get_type() == to->get_type())
+		{
+			to->set_value(from);
+		}
+		else
+		{
+			set_value(to, promote_to(from, to->get_type()));
+		}
 	}
 	
 	void set_value(property_base *operand, value_base_sp v)
