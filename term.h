@@ -76,10 +76,10 @@ public:
 	void subscribe()
 	{
 		auto children = get_children();
-		for(tree_node::children_t::size_type i = 0 ; i < children.size() ; i += 1)
+		for(auto ch : children)
 		{
-			auto op = dynamic_cast<term_op *>(children[i]);
-			auto prop = dynamic_cast<property_base *>(children[i]);
+			auto op = dynamic_cast<term_op *>(ch.second);
+			auto prop = dynamic_cast<property_base *>(ch.second);
 			if(op != nullptr)
 			{
 				op->subscribe();
@@ -231,25 +231,25 @@ private:
 		return QString::fromStdString(l.join("/").toStdString());
 	}
 	
-	void				child_added								(tree_node *parent, tree_node *n)
+	void child_added(tree_node *parent, const std::string &, tree_node *n) override
 	{
 		if(node_to_rest_of_path_map.contains(parent))
 		{
 			QStringList pts = node_to_rest_of_path_map[parent].split("/", QString::SkipEmptyParts);
-			if(pts.size() > 1 && pts[0].toStdString() == n->get_name())
+			if(pts.size() > 1 && pts[0].toStdString() == name)
 			{
 				pts.removeAt(0);
 				node_to_rest_of_path_map[n] = build_path(pts);
 				n->add_listener(this);
 			}
-			else if(pts.size() == 1 && pts[0].toStdString() == n->get_name())
+			else if(pts.size() == 1 && pts[0].toStdString() == name)
 			{
 				process_node_appeared(n);
 			}
 		}
 	}
 	
-	void				child_removed							(tree_node */*parent*/, std::string/* name*/, tree_node */*removed_child*/)
+	void				child_removed							(tree_node */*parent*/, std::string/* name*/, tree_node */*removed_child*/) override
 	{
 		//
 	}

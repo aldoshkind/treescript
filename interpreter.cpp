@@ -485,13 +485,15 @@ bool interpreter::internal::push_bin_op(stack_t &stack, std::string op)
 			return false;
 		}
 		
-		if(tn->get_children().size() < 2)
+		auto children = tn->get_children_order();
+		
+		if(children.size() < 2)
 		{
 			return false;
 		}
 		
-		tree_node *l = tn->get_children()[0];
-		tree_node *r = tn->get_children()[1];
+		tree_node *l = tn->get(children.front(), false);
+		tree_node *r = tn->get(*std::next(children.begin()), false);
 		
 		wait_node *left_as_absent = dynamic_cast<wait_node *>(l);
 		wait_node *right_as_absent = dynamic_cast<wait_node *>(r);
