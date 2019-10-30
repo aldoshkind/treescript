@@ -316,14 +316,23 @@ bool interpreter::internal::do_connect(stack_t &stack)
 	
 	tracker *track = new tracker(right, left_prop, &ts);
 	tree_node *tr = track;
-	tr->attach("tracked", right);
+	bool adopt = false;
+	if(dynamic_cast<term_op *>(right) != nullptr || dynamic_cast<wait_node *>(right) != nullptr || dynamic_cast<tracker *>(right) != nullptr)
+	{
+		adopt = true;
+	}
+	tr->attach("tracked", right, adopt);
 	
 	if(right_as_wait_node != nullptr)
 	{
 		right_as_wait_node->do_wait();
 	}
 	
-	tr->attach("target", left);
+	if(dynamic_cast<term_op *>(right) != nullptr || dynamic_cast<wait_node *>(right) != nullptr || dynamic_cast<tracker *>(right) != nullptr)
+	{
+		adopt = true;
+	}
+	tr->attach("target", left, adopt);
 	interp_root->attach("tracker@" + std::to_string((long long)tr), tr);
 	stack.push(left);
 	return true;
