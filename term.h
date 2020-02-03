@@ -259,7 +259,7 @@ private:
 		printf("%s: \"%s\" appeared and is of type \"%s\"\n", __func__, n->get_name().c_str(), n->get_type().c_str());
 		node = n;
 		
-		tree_node *parent = const_cast<tree_node *>(get_parent());
+		tree_node *parent = const_cast<tree_node *>(get_owner());
 		wait_node_listener *listener = dynamic_cast<wait_node_listener *>(parent);
 		if(listener != nullptr)
 		{
