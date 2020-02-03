@@ -226,7 +226,8 @@ tree_node *interpreter::internal::eval(std::string expression, tree_node *local_
 						bool_type val = (value_str == "true");
 						stack.push(new term<bool_type>(val));
 					}
-					else if (value_str[0] == '\'' && value_str[value_str.size() - 1] == '\'')
+					else if ((value_str[0] == '\'' && value_str[value_str.size() - 1] == '\'')  ||
+							 (value_str[0] == '\"' && value_str[value_str.size() - 1] == '\"'))
 					{
 						string_type val = string_type::fromStdString(value_str.substr(1, value_str.size() - 2));
 						stack.push(new term<string_type>(val));
@@ -591,7 +592,7 @@ void interpreter::internal::init()
 		lexer_rules.push("[*]", parser_rules.token_id("'*'"));
 		lexer_rules.push("=", parser_rules.token_id("'='"));
 		lexer_rules.push("[/]", parser_rules.token_id("'/'"));
-		lexer_rules.push("(\\d+([.]\\d+)?)|(true|false)|'.*?'", parser_rules.token_id("CONST"));
+		lexer_rules.push("(\\d+([.]\\d+)?)|(true|false)|'.*?'|[\"].*?[\"]", parser_rules.token_id("CONST"));
 		lexer_rules.push("(([/]*([A-Za-z0-9_@#$%^&!]+|\\.{1,2})[/]*)+)", parser_rules.token_id("PROP"));
 		lexer_rules.push("[(]", parser_rules.token_id("'('"));
 		lexer_rules.push("[)]", parser_rules.token_id("')'"));
