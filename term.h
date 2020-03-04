@@ -132,34 +132,8 @@ private:
 
 
 
-/*class absent_node : public tree_node
-{
-public:
-	absent_node(const std::string &p, tree_node *r) : path(p), root(r)
-	{
-		//
-	}
-	
-	std::string get_absent_path() const
-	{
-		return path;
-	}
-	
-	tree_node *get_absent_root() const
-	{
-		return root;
-	}
-private:
-	std::string path;
-	tree_node *root = nullptr;
-};*/
 
-
-
-
-
-
-class wait_node : public tree_node_inherited<property_value<QString>>, public tree_node::listener_t
+class wait_node : public tree_node_inherited<property_value<QString>>, public tree_node_listener
 {
 public:
 	wait_node(const std::string &path, tree_node *root)
